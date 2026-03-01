@@ -40,19 +40,14 @@ async def webhook(request: Request):
 
                 sender_id = event["sender"]["id"]
 
-                # ถ้าเป็นข้อความ
                 if "message" in event:
 
-                    # กันกรณีไม่มี text (เช่น sticker, image)
                     text = event["message"].get("text", "").strip()
 
                     if not text:
                         send_message(sender_id, "กรุณาพิมพ์ข้อความเป็นตัวหนังสือครับ 😊")
                         return {"status": "ok"}
 
-                    print("USER TEXT:", text)
-
-                    # ผู้ใช้ใหม่
                     if sender_id not in user_state:
                         user_state[sender_id] = "waiting_detail"
 
@@ -69,7 +64,6 @@ async def webhook(request: Request):
                         )
                         return {"status": "ok"}
 
-                    # ผู้ใช้ส่งรายละเอียด
                     if user_state[sender_id] == "waiting_detail":
                         send_message(
                             sender_id,
