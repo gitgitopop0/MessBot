@@ -34,6 +34,7 @@ greetings = [
     "Hi",
 ]
 
+
 @app.get("/webhook")
 async def verify(request: Request):
     mode = request.query_params.get("hub.mode")
@@ -79,7 +80,8 @@ async def webhook(request: Request):
 
                         send_message(
                             sender_id,
-                            "ขอบคุณสำหรับรายละเอียดครับ 🙏\n" "Deverloperจะติดต่อกลับโดยเร็วที่สุดครับ",
+                            "ขอบคุณสำหรับรายละเอียดครับ 🙏\n"
+                            "Deverloperจะติดต่อกลับโดยเร็วที่สุดครับ",
                         )
 
                         user_state[sender_id] = "done"
@@ -92,4 +94,9 @@ def send_message(recipient_id, text):
     params = {"access_token": PAGE_ACCESS_TOKEN}
     headers = {"Content-Type": "application/json"}
     data = {"recipient": {"id": recipient_id}, "message": {"text": text}}
-    requests.post(url, params=params, headers=headers, json=data)
+
+    response = requests.post(url, params=params, headers=headers, json=data)
+
+    print("=== SEND MESSAGE DEBUG ===")
+    print("STATUS:", response.status_code)
+    print("RESPONSE:", response.text)
