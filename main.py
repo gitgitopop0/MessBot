@@ -11,28 +11,10 @@ app = FastAPI()
 PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
 
-user_state = {}
+print("PAGE_ACCESS_TOKEN:", "SET" if PAGE_ACCESS_TOKEN else "NOT SET")
+print("VERIFY_TOKEN:", VERIFY_TOKEN)
 
-greetings = [
-    "สวัสดี",
-    "หวัดดี",
-    "ดีครับ",
-    "ดีค่ะ",
-    "ดีคะ",
-    "ดีคับ",
-    "ดีงับ",
-    "hello",
-    "hi",
-    "ฮัลโหล",
-    "สวัดดี",
-    "สวัดดีครับ",
-    "สวัดดีค่ะ",
-    "สวัดดีคะ",
-    "สวัดดีคับ",
-    "สวัดดีงับ",
-    "Hello",
-    "Hi",
-]
+user_state = {}
 
 
 @app.get("/webhook")
@@ -50,6 +32,7 @@ async def verify(request: Request):
 @app.post("/webhook")
 async def webhook(request: Request):
     body = await request.json()
+    print("INCOMING EVENT:", body)
 
     if "entry" in body:
         for entry in body["entry"]:
@@ -57,9 +40,19 @@ async def webhook(request: Request):
 
                 sender_id = event["sender"]["id"]
 
-                if "message" in event and "text" in event["message"]:
-                    text = event["message"]["text"].strip()
+                # ถ้าเป็นข้อความ
+                if "message" in event:
 
+                    # กันกรณีไม่มี text (เช่น sticker, image)
+                    text = event["message"].get("text", "").strip()
+
+                    if not text:
+                        send_message(sender_id, "กรุณาพิมพ์ข้อความเป็นตัวหนังสือครับ 😊")
+                        return {"status": "ok"}
+
+                    print("USER TEXT:", text)
+
+                    # ผู้ใช้ใหม่
                     if sender_id not in user_state:
                         user_state[sender_id] = "waiting_detail"
 
@@ -74,17 +67,18 @@ async def webhook(request: Request):
                             "• ระยะเวลา\n\n"
                             "พิมพ์รายละเอียดได้เลยครับ 👇",
                         )
-                        return
+                        return {"status": "ok"}
 
+                    # ผู้ใช้ส่งรายละเอียด
                     if user_state[sender_id] == "waiting_detail":
-
                         send_message(
                             sender_id,
                             "ขอบคุณสำหรับรายละเอียดครับ 🙏\n"
-                            "Deverloperจะติดต่อกลับโดยเร็วที่สุดครับ",
+                            "Developer จะติดต่อกลับโดยเร็วที่สุดครับ",
                         )
 
                         user_state[sender_id] = "done"
+                        return {"status": "ok"}
 
     return {"status": "ok"}
 
